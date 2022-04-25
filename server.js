@@ -42,13 +42,13 @@ app.post(
 );
 //insert books
 app.post("/insert", async (req, res) => {
-  const userImage = req.body.userImage;
+  //const userImage = req.body.userImage;
   const title = req.body.title;
   const authors = req.body.authors;
   const description = req.body.description;
   //const Category = req.body.Category;
   const books = new Books({
-    userImage: userImage,
+    //userImage: userImage,
     title: title,
     authors: authors,
     description: description,
