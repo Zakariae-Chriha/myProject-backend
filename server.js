@@ -1,58 +1,55 @@
 const express = require("express");
 const app = express();
 const port = 5000;
-const { imageUploader, catUploader } = require("./middlewares/imageUploader");
-var bodyParser = require("body-parser");
+const { imageUploader } = require("./middlewares/imageUploader");
 const cors = require("cors");
-
-// mongoose Connected
 const mongoose = require("mongoose");
-const Books = require("./modeles/booksSchema");
-const { modelName, findByIdAndDelete } = require("./modeles/booksSchema");
+const Book = require("./modeles/bookSchema");
+
+// Mongo Connection
 mongoose
   .connect(
     "mongodb+srv://zakariae:1234@cluster0.ldyog.mongodb.net/books-comunity?retryWrites=true&w=majority"
   )
   .then((result) =>
     app.listen(port, () => {
-      console.log(`Example app listening on localhost://${port}`);
+      console.log(`Example app listening on http://localhost:${port}`);
     })
   )
   .catch((error) => console.log(error));
 
-// parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }));
-
-// parse application/json
-app.use(bodyParser.json());
+// Middlewares
+app.use(express.static("public"));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(cors());
-//upload file
-app.post("/upload", (req, res) => {
-  res.sendFile("upload file");
-});
-//upload photos
+
+// upload userpic
 app.post(
   "/upload-profile-pic",
   imageUploader.single("profile_pic"),
   (req, res) => {
-    if (!req.file) res.status(400).send("No file selected");
-    console.log(req.file);
-    res.send("picture upload");
+    if (!req.file) {
+      res.status(400).send("No file selected");
+    } else {
+      res.send("picture upload");
+    }
   }
 );
-//insert books
+
+// insert book
 app.post("/insert", async (req, res) => {
-  //const userImage = req.body.userImage;
+  const userImage = req.body.userImage;
   const title = req.body.title;
   const authors = req.body.authors;
   const description = req.body.description;
-  //const Category = req.body.Category;
-  const books = new Books({
-    //userImage: userImage,
+  const category = req.body.category;
+  const books = new Book({
+    userImage: userImage,
     title: title,
     authors: authors,
     description: description,
-    //Category: Category,
+    category: category,
   });
 
   try {
@@ -62,9 +59,10 @@ app.post("/insert", async (req, res) => {
     console.log(Error);
   }
 });
-//read books
+
+// get all books
 app.get("/read", async (req, res) => {
-  Books.find({}, (error, result) => {
+  Book.find({}, (error, result) => {
     if (error) {
       res.send(error);
     } else {
@@ -72,23 +70,49 @@ app.get("/read", async (req, res) => {
     }
   });
 });
-app.put("/update", async (req, res) => {
-  const newBooks = req.body.newBooks;
-  const id = req.body.id;
+
+// get one book
+app.get("/read/:id", async (req, res) => {
+  const id = req.params.id;
+  Book.findById(id, (error, result) => {
+    if (error) {
+      res.send(error);
+    } else {
+      res.send(result);
+    }
+  });
+});
+
+// update book
+app.put("/update/:id", async (req, res) => {
+  const id = req.params.id;
+  const userImage = req.body.userImage;
+  const title = req.body.title;
+  const authors = req.body.authors;
+  const description = req.body.description;
+  const category = req.body.category;
+
   try {
-    await Books.findById(id, (Error, updateBooks) => {
-      updateBooks.authors = newBooks;
-      updateBooks.save();
-      res.send("update data");
-    });
-  } catch (Error) {
-    console.log(Error);
+    const foundUser = await Book.findById(id);
+    console.log(foundUser);
+    foundUser.userImage = userImage;
+    foundUser.title = title;
+    foundUser.authors = authors;
+    foundUser.description = description;
+    foundUser.category = category;
+
+    await foundUser.save();
+    res.send("updated data");
+  } catch (err) {
+    console.log(err);
   }
 });
+
+// delete book
 app.delete("/delete/:id", async (req, res) => {
   const id = req.params.id;
   try {
-    await Books.findByIdAndDelete(id).exec();
+    await Book.findByIdAndDelete(id).exec();
     res.send("deleted");
   } catch (Error) {
     console.log(Error);
