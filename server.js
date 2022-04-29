@@ -52,7 +52,9 @@ app.post('/insert', async (req, res) => {
   const description = req.body.description
   const category = req.body.category
   const preice = req.body.preice
+  const preiceType = req.body.preiceType
   const publisher = req.body.publisher
+
   const books = new Book({
     userImage: userImage,
     title: title,
@@ -60,6 +62,7 @@ app.post('/insert', async (req, res) => {
     description: description,
     category: category,
     preice: preice,
+    preiceType: preiceType,
     publisher: publisher,
   })
 
