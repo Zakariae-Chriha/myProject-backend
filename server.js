@@ -1,10 +1,17 @@
 const express = require("express");
 const app = express();
-const port = 5000;
+const port = 8000;
 const { imageUploader } = require("./middlewares/imageUploader");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const Book = require("./modeles/bookSchema");
+const mg = require("mailgun-js");
+//email
+const mailgun = () =>
+  mg({
+    apiKey: process.env.MAILGUN_API_KEY,
+    domain: process.env.MAILGUN_DOMIAN,
+  });
 
 // Mongo Connection
 mongoose
@@ -44,12 +51,16 @@ app.post("/insert", async (req, res) => {
   const authors = req.body.authors;
   const description = req.body.description;
   const category = req.body.category;
+  const preice = req.body.preice;
+  const publisher = req.body.publisher;
   const books = new Book({
     userImage: userImage,
     title: title,
     authors: authors,
     description: description,
     category: category,
+    preice: preice,
+    publisher: publisher,
   });
 
   try {
@@ -91,7 +102,8 @@ app.put("/update/:id", async (req, res) => {
   const authors = req.body.authors;
   const description = req.body.description;
   const category = req.body.category;
-
+  const preice = req.body.preice;
+  const publisher = req.body.publisher;
   try {
     const foundUser = await Book.findById(id);
     console.log(foundUser);
@@ -100,7 +112,8 @@ app.put("/update/:id", async (req, res) => {
     foundUser.authors = authors;
     foundUser.description = description;
     foundUser.category = category;
-
+    foundUser.preice = preice;
+    foundUser.publisher = publisher;
     await foundUser.save();
     res.send("updated data");
   } catch (err) {
@@ -117,4 +130,29 @@ app.delete("/delete/:id", async (req, res) => {
   } catch (Error) {
     console.log(Error);
   }
+});
+
+//send email
+
+app.post("/api/email", (req, res) => {
+  const { email, subject, message } = req.body;
+  mailgun()
+    .messages()
+    .send(
+      {
+        from: "John Doe <john@mg.yourdomain.com>",
+        to: `${email}`,
+        subject: `${subject}`,
+        html: `<p>${message}</p>`,
+      },
+      (error, body) => {
+        if (error) {
+          console.log(error);
+          res.status(500).send({ message: "Error in sending email" });
+        } else {
+          console.log(body);
+          res.send({ message: "Email sent successfully" });
+        }
+      }
+    );
 });
