@@ -1,61 +1,61 @@
-const express = require("express");
-const app = express();
-const port = 8000;
-const { imageUploader } = require("./middlewares/imageUploader");
-const cors = require("cors");
-const mongoose = require("mongoose");
-const Book = require("./modeles/bookSchema");
-const users = require("./modeles/userSchema");
-const mg = require("mailgun-js");
+const express = require('express')
+const app = express()
+const port = 8000
+const { imageUploader } = require('./middlewares/imageUploader')
+const cors = require('cors')
+const mongoose = require('mongoose')
+const Book = require('./modeles/bookSchema')
+const users = require('./modeles/userSchema')
+const mg = require('mailgun-js')
 
 //email
 const mailgun = () =>
   mg({
     apiKey: process.env.MAILGUN_API_KEY,
     domain: process.env.MAILGUN_DOMIAN,
-  });
+  })
 
 // Mongo Connection
 mongoose
   .connect(
-    "mongodb+srv://zakariae:1234@cluster0.ldyog.mongodb.net/books-comunity?retryWrites=true&w=majority"
+    'mongodb+srv://zakariae:1234@cluster0.ldyog.mongodb.net/books-comunity?retryWrites=true&w=majority'
   )
   .then((result) =>
     app.listen(port, () => {
-      console.log(`Example app listening on http://localhost:${port}`);
+      console.log(`Example app listening on http://localhost:${port}`)
     })
   )
-  .catch((error) => console.log(error));
+  .catch((error) => console.log(error))
 
 // Middlewares
-app.use(express.static("public"));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(cors());
+app.use(express.static('public'))
+app.use(express.urlencoded({ extended: true }))
+app.use(express.json())
+app.use(cors())
 
 // upload userpic
 app.post(
-  "/upload-profile-pic",
-  imageUploader.single("profile_pic"),
+  '/upload-profile-pic',
+  imageUploader.single('profile_pic'),
   (req, res) => {
     if (!req.file) {
-      res.status(400).send("No file selected");
+      res.status(400).send('No file selected')
     } else {
-      res.send(`http://localhost:8000/images/${req.file.originalname}`);
+      res.send(`http://localhost:8000/images/${req.file.originalname}`)
     }
   }
-);
+)
 
 // insert book
-app.post("/insert", async (req, res) => {
-  const userImage = req.body.userImage;
-  const title = req.body.title;
-  const authors = req.body.authors;
-  const description = req.body.description;
-  const category = req.body.category;
-  const preice = req.body.preice;
-  const preiceType = req.body.preiceType;
-  const publisher = req.body.publisher;
+app.post('/insert', async (req, res) => {
+  const userImage = req.body.userImage
+  const title = req.body.title
+  const authors = req.body.authors
+  const description = req.body.description
+  const category = req.body.category
+  const preice = req.body.preice
+  const preiceType = req.body.preiceType
+  const publisher = req.body.publisher
 
   const books = new Book({
     userImage: userImage,
@@ -66,137 +66,149 @@ app.post("/insert", async (req, res) => {
     preice: preice,
     preiceType: preiceType,
     publisher: publisher,
-  });
+  })
 
   try {
-    await books.save();
-    res.send(`yes`);
+    await books.save()
+    res.send(`yes`)
   } catch (Error) {
-    console.log(Error);
+    console.log(Error)
   }
-});
+})
 
-// get all books
-app.get("/read", async (req, res) => {
-  Book.find({}, (error, result) => {
-    if (error) {
-      res.send(error);
-    } else {
-      res.send(result);
-    }
-  });
-});
+// get books by category
+app.get('/read', async (req, res) => {
+  const { category } = req.query
+
+  if (!category) {
+    Book.find({}, (error, result) => {
+      if (error) {
+        res.send(error)
+      } else {
+        res.send(result)
+      }
+    })
+  } else {
+    Book.find({ category: category }, (error, result) => {
+      if (error) {
+        res.send(error)
+      } else {
+        res.send(result)
+      }
+    })
+  }
+})
 
 // get one book
-app.get("/read/:id", async (req, res) => {
-  const id = req.params.id;
+app.get('/read/:id', async (req, res) => {
+  const id = req.params.id
   Book.findById(id, (error, result) => {
     if (error) {
-      res.send(error);
+      res.send(error)
     } else {
-      res.send(result);
+      res.send(result)
     }
-  });
-});
+  })
+})
 
 // update book
-app.put("/update/:id", async (req, res) => {
-  const id = req.params.id;
-  const userImage = req.body.userImage;
-  const title = req.body.title;
-  const authors = req.body.authors;
-  const description = req.body.description;
-  const category = req.body.category;
-  const preice = req.body.preice;
-  const publisher = req.body.publisher;
+app.put('/update/:id', async (req, res) => {
+  const id = req.params.id
+  const userImage = req.body.userImage
+  const title = req.body.title
+  const authors = req.body.authors
+  const description = req.body.description
+  const category = req.body.category
+  const preice = req.body.preice
+  const publisher = req.body.publisher
   try {
-    const foundUser = await Book.findById(id);
-    console.log(foundUser);
-    foundUser.userImage = userImage;
-    foundUser.title = title;
-    foundUser.authors = authors;
-    foundUser.description = description;
-    foundUser.category = category;
-    foundUser.preice = preice;
-    foundUser.publisher = publisher;
-    await foundUser.save();
-    res.send("updated data");
+    const foundUser = await Book.findById(id)
+    console.log(foundUser)
+    foundUser.userImage = userImage
+    foundUser.title = title
+    foundUser.authors = authors
+    foundUser.description = description
+    foundUser.category = category
+    foundUser.preice = preice
+    foundUser.publisher = publisher
+    await foundUser.save()
+    res.send('updated data')
   } catch (err) {
-    console.log(err);
+    console.log(err)
   }
-});
+})
 
 // delete book
-app.delete("/delete/:id", async (req, res) => {
-  const id = req.params.id;
+app.delete('/delete/:id', async (req, res) => {
+  const id = req.params.id
   try {
-    await Book.findByIdAndDelete(id).exec();
-    res.send("deleted");
+    await Book.findByIdAndDelete(id).exec()
+    res.send('deleted')
   } catch (Error) {
-    console.log(Error);
+    console.log(Error)
   }
-});
+})
 
 //send email
 
-app.post("/api/email", (req, res) => {
-  const { email, subject, message } = req.body;
+app.post('/api/email', (req, res) => {
+  const { email, subject, message } = req.body
   mailgun()
     .messages()
     .send(
       {
-        from: "John Doe <john@mg.yourdomain.com>",
+        from: 'John Doe <john@mg.yourdomain.com>',
         to: `${email}`,
         subject: `${subject}`,
         html: `<p>${message}</p>`,
       },
       (error, body) => {
         if (error) {
-          console.log(error);
-          res.status(500).send({ message: "Error in sending email" });
+          console.log(error)
+          res.status(500).send({ message: 'Error in sending email' })
         } else {
-          console.log(body);
-          res.send({ message: "Email sent successfully" });
+          console.log(body)
+          res.send({ message: 'Email sent successfully' })
         }
       }
-    );
-});
+    )
+})
 // GET all users, without sending password
-app.get("/users", (req, res) => {
+app.get('/users', (req, res) => {
   users
-    .aggregate([{ $group: { _id: "$_id", username: { $first: "$username" } } }])
+    .aggregate([{ $group: { _id: '$_id', username: { $first: '$username' } } }])
     .then((users) => {
-      res.send(users);
+      res.send(users)
     })
     .catch((err) => {
-      res.status(500).send(err);
-    });
-});
+      res.status(500).send(err)
+    })
+})
 // GET user by id
-app.get("/user/:id", (req, res) => {
+app.get('/user/:id', (req, res) => {
   users
     .aggregate([
       { $match: { _id: new mongoose.Types.ObjectId(req.params.id) } },
-      { $group: { _id: "$_id", username: { $first: "$username" } } },
+      { $group: { _id: '$_id', username: { $first: '$username' } } },
     ])
     .then((user) => {
-      res.send(user[0]);
+      res.send(user[0])
     })
     .catch((err) => {
-      res.status(500).send(err);
-    });
-});
+      res.status(500).send(err)
+    })
+})
 // CREATE new user
-app.post("/user/register", (req, res) => {
-  const { username, password } = req.body;
+app.post('/user/register', (req, res) => {
+  const { username, password } = req.body
   if (!username || !password) {
-    res.status(400).send("Missing username or password");
+    res.status(400).send('Missing username or password')
   } else {
     users.find({ username }).then((user) => {
       if (user.length > 0) {
-        res.status(400).send("Username already exists");
+        res.status(400).send('Username already exists')
       } else {
-        const hash = bcrypt.hashSync(password, 10);
+        const hash = bcrypt.hashSync(password, 10)
         users
           .create({
             _id: new mongoose.Types.ObjectId(),
@@ -204,21 +216,21 @@ app.post("/user/register", (req, res) => {
             password: hash,
           })
           .then((result) => {
-            res.send(result);
+            res.send(result)
           })
           .catch((err) => {
-            console.log(err);
-            res.status(500).send(err);
-          });
+            console.log(err)
+            res.status(500).send(err)
+          })
       }
-    });
+    })
   }
-});
+})
 // LOGIN user
-app.post("/user/login", (req, res) => {
-  const { username, password } = req.body;
+app.post('/user/login', (req, res) => {
+  const { username, password } = req.body
   if (!username || !password) {
-    res.status(400).send("Missing username or password");
+    res.status(400).send('Missing username or password')
   } else {
     users
       .find({ username: username })
@@ -226,26 +238,26 @@ app.post("/user/login", (req, res) => {
         if (user.length > 0) {
           bcrypt.compare(password, user[0].password, (err, result) => {
             if (err) {
-              res.status(500).send(err);
+              res.status(500).send(err)
             } else {
               if (result) {
-                res.send(user);
+                res.send(user)
               } else {
-                res.status(400).send("Wrong password");
+                res.status(400).send('Wrong password')
               }
             }
-          });
+          })
         } else {
-          res.status(400).send("Username does not exist");
+          res.status(400).send('Username does not exist')
         }
       })
       .catch((err) => {
-        res.status(500).send(err);
-      });
+        res.status(500).send(err)
+      })
   }
-});
+})
 
 // Handle 404
 app.use((req, res) => {
-  res.status(404).send("404: Page not found");
-});
+  res.status(404).send('404: Page not found')
+})
