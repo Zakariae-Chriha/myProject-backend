@@ -5,8 +5,9 @@ const { imageUploader } = require('./middlewares/imageUploader')
 const cors = require('cors')
 const mongoose = require('mongoose')
 const Book = require('./modeles/bookSchema')
-const users = require('./modeles/userSchema')
+const User = require('./modeles/userSchema')
 const mg = require('mailgun-js')
+const { register, login } = require('./controllers/userController')
 
 //email
 const mailgun = () =>
@@ -175,8 +176,9 @@ app.post('/api/email', (req, res) => {
 })
 // GET all users, without sending password
 app.get('/users', (req, res) => {
-  users
-    .aggregate([{ $group: { _id: '$_id', username: { $first: '$username' } } }])
+  User.aggregate([
+    { $group: { _id: '$_id', username: { $first: '$username' } } },
+  ])
     .then((users) => {
       res.send(users)
     })
@@ -186,11 +188,10 @@ app.get('/users', (req, res) => {
 })
 // GET user by id
 app.get('/user/:id', (req, res) => {
-  users
-    .aggregate([
-      { $match: { _id: new mongoose.Types.ObjectId(req.params.id) } },
-      { $group: { _id: '$_id', username: { $first: '$username' } } },
-    ])
+  User.aggregate([
+    { $match: { _id: new mongoose.Types.ObjectId(req.params.id) } },
+    { $group: { _id: '$_id', username: { $first: '$username' } } },
+  ])
     .then((user) => {
       res.send(user[0])
     })
@@ -199,63 +200,9 @@ app.get('/user/:id', (req, res) => {
     })
 })
 // CREATE new user
-app.post('/user/register', (req, res) => {
-  const { username, password } = req.body
-  if (!username || !password) {
-    res.status(400).send('Missing username or password')
-  } else {
-    users.find({ username }).then((user) => {
-      if (user.length > 0) {
-        res.status(400).send('Username already exists')
-      } else {
-        const hash = bcrypt.hashSync(password, 10)
-        users
-          .create({
-            _id: new mongoose.Types.ObjectId(),
-            username,
-            password: hash,
-          })
-          .then((result) => {
-            res.send(result)
-          })
-          .catch((err) => {
-            console.log(err)
-            res.status(500).send(err)
-          })
-      }
-    })
-  }
-})
+app.post('/user/register', register)
 // LOGIN user
-app.post('/user/login', (req, res) => {
-  const { username, password } = req.body
-  if (!username || !password) {
-    res.status(400).send('Missing username or password')
-  } else {
-    users
-      .find({ username: username })
-      .then((user) => {
-        if (user.length > 0) {
-          bcrypt.compare(password, user[0].password, (err, result) => {
-            if (err) {
-              res.status(500).send(err)
-            } else {
-              if (result) {
-                res.send(user)
-              } else {
-                res.status(400).send('Wrong password')
-              }
-            }
-          })
-        } else {
-          res.status(400).send('Username does not exist')
-        }
-      })
-      .catch((err) => {
-        res.status(500).send(err)
-      })
-  }
-})
+app.post('/user/login', login)
 
 // Handle 404
 app.use((req, res) => {
