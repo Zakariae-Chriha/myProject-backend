@@ -5,9 +5,9 @@ const Schema = mongoose.Schema
 
 const bookSchema = new Schema({
   userImage: { type: String },
-  title: { type: String, required: true },
-  authors: { type: String, required: true },
-  description: { type: String, required: true },
+  title: { type: String },
+  authors: { type: String },
+  description: { type: String },
   category: { type: String },
   preice: { type: String },
   preiceType: { type: String },
