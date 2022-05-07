@@ -1,5 +1,5 @@
-const mongoose = require('mongoose')
-const Schema = mongoose.Schema
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 
 //define schema Article
 
@@ -12,10 +12,11 @@ const bookSchema = new Schema({
   preice: { type: String },
   preiceType: { type: String },
   publisher: { type: String },
-})
+  username_id: { type: String },
+});
 
 // create a modele based on this Schema
-const Book = mongoose.model('Book', bookSchema)
+const Book = mongoose.model("Book", bookSchema);
 //modele export
 
-module.exports = Book
+module.exports = Book;
