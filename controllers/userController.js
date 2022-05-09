@@ -40,7 +40,11 @@ const login = async (req, res) => {
       res.status(400).send('Password is incorrect')
     } else {
       const token = jwt.sign(
-        { username: foundUser[0].username, isAdmin: foundUser[0].isAdmin },
+        {
+          username: foundUser[0].username,
+          isAdmin: foundUser[0].isAdmin,
+          _id: foundUser[0]._id,
+        },
         process.env.JWT_SECRET
       )
 
