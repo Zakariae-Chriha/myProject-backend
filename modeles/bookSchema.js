@@ -12,7 +12,6 @@ const bookSchema = new Schema({
   preice: { type: String },
   preiceType: { type: String },
   publisher: { type: String },
-  username_id: { type: String },
 });
 
 // create a modele based on this Schema
