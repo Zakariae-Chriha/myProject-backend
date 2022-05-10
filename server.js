@@ -178,10 +178,12 @@ app.delete("/delete/:id", async (req, res) => {
 //send email
 app.post("/send_mail", (req, res) => {
   var transporter = nodemailer.createTransport({
+    host: process.env.MAIL_HOST,
+    port: process.env.MAIL_PORT,
     service: "gmail",
     auth: {
-      user: "d019ce1d2460e9",
-      pass: "471292df485cf7",
+      user: process.env.MAIL_USER,
+      pass: process.env.MAIL_PASS,
     },
   });
 
