@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 require("dotenv").config();
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 5000;
 const { imageUploader } = require("./middlewares/imageUploader");
 const cors = require("cors");
 const mongoose = require("mongoose");

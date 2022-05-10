@@ -21,6 +21,7 @@
     "dotenv": "^16.0.0",
     "expres": "^0.0.5",
     "express": "^4.17.3",
+    "heroku": "^7.60.2",
     "jsonwebtoken": "^8.5.1",
     "mailgun-js": "^0.22.0",
     "mongoose": "^6.3.1",
