@@ -42,7 +42,7 @@ app.post(
       res.status(400).send('No file selected')
     } else {
       res.send(
-        `https://bookscommunity.herokuapp.com/images/${req.file.originalname}`
+        `https://communitybook.herokuapp.com/images/${req.file.originalname}`
       )
     }
   }
